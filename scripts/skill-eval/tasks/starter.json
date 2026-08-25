@@ -1,0 +1,46 @@
+{
+  "_comment": [
+    "Starter task set for stage 0 ONLY. These are placeholders whose job is to",
+    "exercise the harness across a handful of distinct rollouts.",
+    "",
+    "Stage 1 replaces this file with mined issue/PR pairs: unshallow the clone,",
+    "walk closed issues that have a merged PR, and emit one task per pair with",
+    "the issue body as the prompt and the merged diff plus that PR's tests as",
+    "ground truth. Do not run stage 2 against these placeholders.",
+    "",
+    "SANDBOX: `repo` must point at a throwaway. A real rollout of",
+    "github-issue-crusher pushes branches and opens pull requests."
+  ],
+  "tasks": [
+    {
+      "id": "missing-i18n-key",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: a user-visible string in the settings panel is hard-coded instead of going through useT(). Add the key to en.ts and every locale chunk, and replace the literal."
+    },
+    {
+      "id": "rust-clippy-warning",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: cargo clippy reports a needless_borrow in the cron domain. Fix the borrow and keep the tests green."
+    },
+    {
+      "id": "broken-doc-link",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: a relative link in gitbooks/developing/architecture.md points at a file that has moved. Repoint it."
+    },
+    {
+      "id": "unhandled-null-in-selector",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: a Redux selector throws when the thread slice is empty on first boot. Guard the access and add a unit test."
+    },
+    {
+      "id": "stale-env-example",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: .env.example is missing a variable the core now reads at startup. Document it with a sensible default."
+    },
+    {
+      "id": "flaky-timeout-assert",
+      "repo": "SANDBOX-OWNER/openhuman-eval-sandbox",
+      "prompt": "Issue: a Vitest spec asserts on a real timer and fails intermittently in CI. Make it deterministic with fake timers."
+    }
+  ]
+}
