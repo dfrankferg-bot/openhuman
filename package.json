@@ -53,6 +53,8 @@
     "i18n:check": "tsx scripts/i18n-coverage.ts",
     "i18n:react:check": "tsx scripts/i18n-react-audit.ts",
     "i18n:bundle:check": "node scripts/verify-i18n-bundle.mjs",
+    "check:webview-injection": "node scripts/webview-injection-guard/cli.mjs",
+    "check:webview-injection:test": "node --test scripts/webview-injection-guard/__tests__/lib.test.mjs",
     "i18n:dump": "tsx scripts/i18n-coverage.ts --no-unused --out tmp/i18n-coverage"
   },
   "devDependencies": {

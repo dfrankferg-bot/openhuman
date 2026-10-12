@@ -1,0 +1,40 @@
+{
+  "_doc": "Grandfathered JS-injection sites in the Tauri shell. Enforced by scripts/webview-injection-guard (CI + pre-push). Numbers are CEILINGS on non-comment occurrences per file; they may only go down. Adding a file, a primitive, or raising a number requires a code-review justification in the PR and a `reason` here. Migrated providers (whatsapp, wechat, telegram, slack, discord, browserscan) must never appear. See CLAUDE.md 'CEF child webviews — no new JS injection' and gitbooks/developing/cef.md.",
+  "rust_injection_sites": {
+    "app/src-tauri/src/cdp/session.rs": {
+      "reason": "Notification-permission shim registered on the per-account CDP session before the provider URL loads (legacy; documented in build_init_script docs).",
+      "add_script_on_new_document": 1
+    },
+    "app/src-tauri/src/meet_audio/inject.rs": {
+      "reason": "Google Meet (grandfathered): audio + captions bridges for the meet agent. Should shrink as Meet moves to CDP-only.",
+      "add_script_on_new_document": 2,
+      "runtime_evaluate": 7,
+      "include_js": 2
+    },
+    "app/src-tauri/src/meet_scanner/mod.rs": {
+      "reason": "Google Meet (grandfathered): scanner reads meeting state via Runtime.evaluate instead of DOM snapshots.",
+      "runtime_evaluate": 5
+    },
+    "app/src-tauri/src/meet_video/inject.rs": {
+      "reason": "Google Meet (grandfathered): mascot camera bridge injected post-reload via Runtime.evaluate.",
+      "runtime_evaluate": 6
+    },
+    "app/src-tauri/src/meet_video/mod.rs": {
+      "reason": "Google Meet (grandfathered): camera_bridge.js template baked into the binary.",
+      "include_js": 1
+    },
+    "app/src-tauri/src/webview_accounts/mod.rs": {
+      "reason": "Grandfathered recipe bridge (runtime.js + linkedin/google-meet recipes). build_init_script returns an empty script for migrated providers; that invariant is covered by Rust tests, this guard covers the call-site count.",
+      "initialization_script": 1,
+      "include_js": 3
+    }
+  },
+  "js_assets": [
+    "app/src-tauri/recipes/google-meet/recipe.js",
+    "app/src-tauri/recipes/linkedin/recipe.js",
+    "app/src-tauri/src/meet_audio/audio_bridge.js",
+    "app/src-tauri/src/meet_audio/captions_bridge.js",
+    "app/src-tauri/src/meet_video/camera_bridge.js",
+    "app/src-tauri/src/webview_accounts/runtime.js"
+  ]
+}

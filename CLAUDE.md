@@ -215,6 +215,8 @@ If a feature truly cannot be built this way (e.g. intercepting a click the page'
 
 Watch out for Tauri plugins that inject JS by default. `tauri-plugin-opener` ships `init-iife.js` (a global click listener that calls `plugin:opener|open_url` via HTTP-IPC) unless you build it with `.open_js_links_on_click(false)`. Any new plugin added to `app/src-tauri/src/lib.rs` must be audited for a `js_init_script` call — if found, opt out or configure around it.
 
+**Machine-enforced.** `pnpm check:webview-injection` (`scripts/webview-injection-guard/`) scans `app/src-tauri` for every injection primitive and every `.js` asset and fails on anything not in its `allowlist.json`; CI (`webview-injection-guard.yml`) and the pre-push hook run it. Grandfathered ceilings may only go down (`-- --update`); raising one or adding a site is a hand edit with a written `reason` and a PR justification. Migrated providers must never appear in the allowlist. Agents touching the shell get the same instructions from `.claude/rules/webview-injection-guard.md`.
+
 ---
 
 ## Rust core (`src/`)

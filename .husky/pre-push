@@ -105,8 +105,14 @@ pnpm --dir app run lint:commands-tokens
 CMD_TOKENS_EXIT=$?
 set -e
 
+# Guard: no new JS injection into CEF webviews (scripts/webview-injection-guard)
+set +e
+node scripts/webview-injection-guard/cli.mjs
+INJECTION_GUARD_EXIT=$?
+set -e
+
 # Exit with error if any command still fails after fixes
-if [ $FORMAT_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ] || [ $COMPILE_EXIT -ne 0 ] || [ $RUST_CHECK_EXIT -ne 0 ] || [ $CMD_TOKENS_EXIT -ne 0 ]; then
+if [ $FORMAT_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ] || [ $COMPILE_EXIT -ne 0 ] || [ $RUST_CHECK_EXIT -ne 0 ] || [ $CMD_TOKENS_EXIT -ne 0 ] || [ $INJECTION_GUARD_EXIT -ne 0 ]; then
   echo
   echo "============================================================"
   echo "Pre-push checks failed."
@@ -116,8 +122,8 @@ if [ $FORMAT_EXIT -ne 0 ] || [ $LINT_EXIT -ne 0 ] || [ $COMPILE_EXIT -ne 0 ] || 
     echo "    git add -A && git commit -m 'chore: apply auto-fixes'"
     echo "    git push"
   fi
-  if [ $COMPILE_EXIT -ne 0 ] || [ $RUST_CHECK_EXIT -ne 0 ] || [ $CMD_TOKENS_EXIT -ne 0 ]; then
-    echo "Fix the remaining errors above (TypeScript / Rust / cmd-tokens)"
+  if [ $COMPILE_EXIT -ne 0 ] || [ $RUST_CHECK_EXIT -ne 0 ] || [ $CMD_TOKENS_EXIT -ne 0 ] || [ $INJECTION_GUARD_EXIT -ne 0 ]; then
+    echo "Fix the remaining errors above (TypeScript / Rust / cmd-tokens / webview-injection)"
     echo "before re-pushing — these have no auto-fix path."
   fi
   echo "============================================================"

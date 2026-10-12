@@ -19,6 +19,7 @@ Quick reference for anyone starting with Claude on this project. Updated by the 
 - **All frontend env vars go through `app/src/utils/config.ts`** — Never read `import.meta.env.VITE_*` directly in other files. Import from config.ts instead. See `.env.example` files for the full list.
 - **Always run checks before commit** — `pnpm workspace openhuman-app compile`, `pnpm lint`, `pnpm format:check`, `pnpm build`, `pnpm tauri dev`. Husky hooks enforce some but run all manually first.
 - **Stage specific files** — Never `git add -A`. Always `git add <specific-files>`.
+- **No new JS injection into CEF webviews — machine-enforced** — `pnpm check:webview-injection` (CI + pre-push) fails on any new `initialization_script` / `Page.addScriptToEvaluateOnNewDocument` / `Runtime.evaluate` / `js_init_script` / `include_str!("*.js")` site or new `.js` file under `app/src-tauri`. Ceilings in `scripts/webview-injection-guard/allowlist.json` only go down (`-- --update`); raising one is a human decision, never an agent edit.
 
 ## Workflow
 

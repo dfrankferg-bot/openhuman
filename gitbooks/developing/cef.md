@@ -97,6 +97,14 @@ This matters because anything host-controlled that runs inside a third-party ori
 
 Legacy injection should shrink, never grow. New providers go straight onto the CDP-only path.
 
+### Enforcement
+
+The rule is enforced by `scripts/webview-injection-guard` (`pnpm check:webview-injection`), which runs in CI ([`webview-injection-guard.yml`](../../.github/workflows/webview-injection-guard.yml)) and in the pre-push hook. It strips comments from every `.rs` file under `app/src-tauri/src`, counts the injection primitives (`initialization_script`, `Page.addScriptToEvaluateOnNewDocument`, `Runtime.evaluate`, `js_init_script`, `include_str!("*.js")`), lists every `.js` asset under `app/src-tauri/src` and `app/src-tauri/recipes`, and fails unless the result is covered by [`allowlist.json`](../../scripts/webview-injection-guard/allowlist.json). Each grandfathered site carries a ceiling and a `reason`; ceilings may only be lowered automatically (`pnpm check:webview-injection -- --update`). Raising one, adding a site, or adding a `.js` file is a hand edit that must be justified in the PR. Migrated providers must never appear in the allowlist.
+
+### Deeper runtime audit (manual)
+
+The guard is source-level: it proves no new injection code path exists, not what a running CEF process actually evaluates. For a runtime check of a local build, [REA](https://github.com/morluto/rea) (`npx -y rea-agents@latest`, MIT) can observe a Chromium-family target over CDP and record scripts and network activity per origin. Run it against a `pnpm test:e2e:build` bundle under a throwaway `OPENHUMAN_WORKSPACE`, never your daily install, since runtime capture executes the target with your user permissions. Note REA's static `analyze-javascript-application` command only inspects the renderer bundle and cannot see Rust-side injection; use its browser-observation mode for this audit.
+
 ## CEF prewarm
 
 A hidden CEF webview (`cef-prewarm`) boots the browser on app launch so the first child webview spawns instantly when the user clicks. It's torn down before `cef::shutdown()` to avoid races during quit. See `app/src-tauri/src/lib.rs` around the prewarm + close lifecycle.
@@ -139,7 +147,7 @@ Open the Vite URL in a regular browser, choose **Advanced** / remote core mode, 
 
 ## Plugin audit
 
-Anything new added to `app/src-tauri/src/lib.rs` must be audited for `js_init_script` calls. `tauri-plugin-opener` ships an init script (`init-iife.js`) by default that adds a global click listener; we configure it with `.open_js_links_on_click(false)` so it doesn't run inside third-party webviews. `tauri-plugin-notification`'s init script was likewise dropped from the vendored copy.
+Anything new added to `app/src-tauri/src/lib.rs` must be audited for `js_init_script` calls. The webview injection guard asserts the opener opt-out is present and that no `js_init_script(` call appears outside the allowlist. `tauri-plugin-opener` ships an init script (`init-iife.js`) by default that adds a global click listener; we configure it with `.open_js_links_on_click(false)` so it doesn't run inside third-party webviews. `tauri-plugin-notification`'s init script was likewise dropped from the vendored copy.
 
 ## Where this could evolve
 

@@ -1,0 +1,48 @@
+---
+# Guards the CLAUDE.md rule "CEF child webviews — no new JS injection".
+#
+# Why this exists: embedded provider webviews (Slack, Telegram, WhatsApp, …)
+# load third-party origins inside CEF. Any host-controlled JavaScript the shell
+# runs in those origins is a scraping/attack-surface liability, so migrated
+# providers must load with zero injected JS and legacy injection must shrink,
+# never grow. Until now that rule lived only in docs and reviewers' heads.
+#
+# This job scans app/src-tauri for every injection primitive
+# (initialization_script, Page.addScriptToEvaluateOnNewDocument,
+# Runtime.evaluate, js_init_script, include_str!("*.js")) plus any new .js
+# asset under the shell, and fails if the result is not covered by
+# scripts/webview-injection-guard/allowlist.json. It also asserts
+# tauri-plugin-opener is built with .open_js_links_on_click(false).
+#
+# Lowering a ceiling: `pnpm check:webview-injection -- --update`.
+# Raising one or adding a site: edit allowlist.json by hand with a reason,
+# and justify it in the PR. See scripts/webview-injection-guard/README.md.
+name: Webview Injection Guard
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  guard:
+    name: No new JS injection into CEF webviews
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
+      - name: Guard self-test (fixtures + committed allowlist matches tree)
+        run: node --test scripts/webview-injection-guard/__tests__/lib.test.mjs
+      - name: Scan app/src-tauri against allowlist
+        run: node scripts/webview-injection-guard/cli.mjs
